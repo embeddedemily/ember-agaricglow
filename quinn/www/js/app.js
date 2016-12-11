@@ -4,6 +4,15 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 
+function str2ab(str) {
+  var buf = new ArrayBuffer(str.length); // 2 bytes for each char
+  var bufView = new Uint8Array(buf);
+  for (var i=0, strLen=str.length; i<strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
 angular.module('starter', ['ionic', 'ngCordova'])
 .controller('Controller', function($scope, $ionicPlatform, $cordovaDeviceMotion) {
     $ionicPlatform.ready(function() {
@@ -18,8 +27,7 @@ angular.module('starter', ['ionic', 'ngCordova'])
     
     var options = { frequency: 50 };
     
-    var buffer = new ArrayBuffer(8*3);
-    var view   = new Float64Array(buffer);
+    var buffer = 'n'
 
     document.addEventListener("deviceready", function () {
 
@@ -33,16 +41,30 @@ angular.module('starter', ['ionic', 'ngCordova'])
             $scope.x = result.x;
             $scope.y = result.y;
             $scope.z = result.z;
-              
-            view[0] = result.x;
-            view[1] = result.y;
-            view[2] = result.z;
+
+            buffer = 'nn'
+
+            if(result.z > 7) {
+              if(result.y > 4.5) buffer = 'fr'
+              else if(result.y < -4.5) buffer = 'fl'
+              else buffer = 'fn'
+            }
+            else if(result.z < 0) {
+              if(result.y > 4.5) buffer = 'br'
+              else if(result.y < -4.5) buffer = 'bl'
+              else buffer = 'bn'
+            }
+            else {
+              if(result.y > 4.5) buffer = 'nr'
+              else if(result.y < -4.5) buffer = 'nl'
+              else buffer = 'nn'
+            }
               
             chrome.sockets.udp.create({}, function(socketInfo) {
               // The socket is created, now we can send some data
               var socketId = socketInfo.socketId;
-              chrome.sockets.udp.send(socketId, buffer,
-                '192.168.100.1', 55056, function(sendInfo) {
+              chrome.sockets.udp.send(socketId, str2ab(buffer),
+                '172.24.1.1', 55056, function(sendInfo) {
                   //completed here
               });
             });
